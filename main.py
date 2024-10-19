@@ -8,12 +8,13 @@ from dotenv import load_dotenv
 import os
 from db.db import usuarios
 from serializer.user_serializer import user_serializer
+from controllers.password_changued import route_password_chagued
 
 # Cargar las variables del archivo .env
 load_dotenv()
 
 app = FastAPI()
-
+app.include_router(route_password_chagued)
 # Endpoint retorna el token de usuario si sus credenciales son correctas
 @app.post("/token")
 async def login(form_data: OAuth2PasswordRequestForm = Depends()):
@@ -59,3 +60,4 @@ def is_admin(user: dict = Depends(get_current_user)):
 @app.get("/dashboard/admin")
 async def usuarios_on_db(current_user: dict = Depends(is_admin)):
     return user_serializer(usuarios.find())
+

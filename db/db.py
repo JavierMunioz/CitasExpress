@@ -11,5 +11,6 @@ try:
 except:
     print("No se conecto a la base de datos")
 
-usuarios =  conection['citas']
-usuarios = usuarios['usuarios']
+db =  conection['citas']
+usuarios = db['usuarios']
+password_changued = db['password_changued']
