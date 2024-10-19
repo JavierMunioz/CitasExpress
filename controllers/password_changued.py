@@ -4,8 +4,8 @@ from datetime import datetime, timedelta
 
 import bcrypt
 from fastapi import HTTPException, Form, APIRouter
-from db.db import usuarios, password_changued
-from utilities import enviar_correo
+from db.db import user_db, password_changued_db
+from utilities import send_email
 from db.models import PasswordChanged
 
 route_password_chagued = APIRouter()
@@ -14,34 +14,34 @@ def generate_verification_code(length=6):
     return ''.join(random.choices(string.digits, k=length))
 
 @route_password_chagued.post("/code_verification")
-async def requests_code(usuario : str = Form(...)):
+async def requests_code(user_client : str = Form(...)):
 
-    user = usuarios.find_one({'usuario': usuario})
-    on_db = password_changued.find_one({'user' : usuario})
+    user_on_db = user_db.find_one({'usuario': user_client})
+    on_db = password_changued_db.find_one({'user' : user_client})
 
-    if not user:
+    if not user_on_db:
         raise HTTPException(status_code=400, detail="No estas en nuestra Base de Datos.")
 
     code = generate_verification_code()
     new_on_db = PasswordChanged(
-        user=user["usuario"],
+        user=user_on_db["usuario"],
         verification_code=code,
         date_created=datetime.utcnow()  # O cualquier otra fecha
     )
     if not on_db:
-        password_changued.insert_one(new_on_db.__dict__)
+        password_changued_db.insert_one(new_on_db.__dict__)
     else:
-        password_changued.update_one({"user": usuario}, {"$set": {'verification_code': code, 'date_created' : datetime.utcnow()}})
+        password_changued_db.update_one({"user": user_client}, {"$set": {'verification_code': code, 'date_created' : datetime.utcnow()}})
 
 
-    enviar_correo("javidavi16dd@gmail.com", user["correo"], "Verification code citas express", f"Tu codigo para poder cambair la contraseña es: {code}")
+    send_email("javidavi16dd@gmail.com", user_on_db["correo"], "Verification code citas express", f"Tu codigo para poder cambair la contraseña es: {code}")
 
-    return {"Exito" : f"tu codigo fue enviado al correo {user['correo']}"}
+    return {"Exito" : f"tu codigo fue enviado al correo {user_on_db['correo']}"}
 
 @route_password_chagued.post("/changed_password")
 async def changed_password(user : str = Form(...), new_password : str = Form(...), code : str = Form(...)):
-    user_on_db = usuarios.find_one({'usuario': user})
-    on_db = password_changued.find_one({'user': user})
+    user_on_db = user_db.find_one({'usuario': user})
+    on_db = password_changued_db.find_one({'user': user})
 
     if not user_on_db or not on_db:
         raise HTTPException(status_code=400, detail="Usuario no existente.")
@@ -53,6 +53,6 @@ async def changed_password(user : str = Form(...), new_password : str = Form(...
         raise HTTPException(status_code=400, detail="Codigo expirado.")
 
     hashed = bcrypt.hashpw(new_password.encode(), bcrypt.gensalt())
-    usuarios.update_one({"usuario": user}, {"$set": {'contrasenna': hashed}})
+    user_db.update_one({"usuario": user}, {"$set": {'contrasenna': hashed}})
 
     return {"Exito" : "Contraseña cambiada"}
