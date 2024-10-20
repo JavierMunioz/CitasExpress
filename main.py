@@ -9,20 +9,24 @@ import os
 from db.db import user_db
 from serializer.user_serializer import user_serializer
 from controllers.password_changued import route_password_chagued
+from controllers.create_users import create_users_route
+from auth.dependencies import is_admin
 
 # Cargar las variables del archivo .env
 load_dotenv()
 
 app = FastAPI()
 app.include_router(route_password_chagued)
+app.include_router(create_users_route)
+
 # Endpoint retorna el token de usuario si sus credenciales son correctas
 @app.post("/token")
 async def login(form_data: OAuth2PasswordRequestForm = Depends()):
-    user_on_db = user_db.find_one({'usuario': form_data.username})
-    if not user_on_db or not bcrypt.checkpw(form_data.password.encode(), user_on_db['contrasenna']):
+    user_on_db = user_db.find_one({'user': form_data.username})
+    if not user_on_db or not bcrypt.checkpw(form_data.password.encode(), user_on_db['password']):
         raise HTTPException(status_code=400, detail="Credenciales incorrectas")
 
-    access_token = create_access_token(data={"sub": user_on_db["correo"], "rol": user_on_db["rol"], "user": user_on_db["usuario"]})
+    access_token = create_access_token(data={"sub": user_on_db["email"], "rol": user_on_db["rol"], "user": user_on_db["user"]})
     return {"access_token": access_token, "token_type": "bearer"}
 
 # Retorna el usuario actual
@@ -33,28 +37,23 @@ async def read_users_me(current_user: dict = Depends(get_current_user)):
 # Permite registrarse al usuario
 @app.post("/user/register")
 async def register(user_client: str = Form(...)):
-    user_on_db = user_db.find_one({"usuario": user_client})
+    user_on_db = user_db.find_one({"user": user_client})
 
     if not user_on_db:
         raise HTTPException(status_code=400, detail="No perteneces a esta EPS.")
 
-    if user_on_db["registrado"]:
-        raise HTTPException(status_code=400, detail=f"Ya estás registrado, revisa tu correo: {user_on_db['correo']}.")
+    if user_on_db["registered"]:
+        raise HTTPException(status_code=400, detail=f"Ya estás registrado, revisa tu correo: {user_on_db['email']}.")
 
     temp_pass = generate_password()
-    send_email("javidavi16dd@gmail.com", user_on_db["correo"], "Contraseña temporal citas express",
+    send_email("javidavi16dd@gmail.com", user_on_db["email"], "Contraseña temporal citas express",
                   f"Usa: \n{temp_pass}\npara ingresar al sistema.")
 
     hashed = bcrypt.hashpw(temp_pass.encode(), bcrypt.gensalt())
-    user_db.update_one({"usuario": user_client}, {"$set": {'contrasenna': hashed, 'registrado': True}})
+    user_db.update_one({"user": user_client}, {"$set": {'password': hashed, 'registered': True}})
 
-    return {"Éxito": f"Se envió al correo: {user_on_db['correo']} tu nueva contraseña."}
+    return {"Éxito": f"Se envió al correo: {user_on_db['email']} tu nueva contraseña."}
 
-# Verifica si un usuario logueado tiene permisos de administrador
-def is_admin(user_client: dict = Depends(get_current_user)):
-    if user_client["rol"] != '0':
-        raise HTTPException(status_code=400, detail="No eres administrador")
-    return user_client
 
 # Retorna los usuarios registrados siempre y cuando los el usuario este como admin
 @app.get("/dashboard/admin")
