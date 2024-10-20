@@ -11,11 +11,20 @@ from serializer.user_serializer import user_serializer
 from controllers.password_changued import route_password_chagued
 from controllers.create_users import create_users_route
 from auth.dependencies import is_admin
+from fastapi.middleware.cors import CORSMiddleware
 
 # Cargar las variables del archivo .env
 load_dotenv()
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 app.include_router(route_password_chagued)
 app.include_router(create_users_route)
 
