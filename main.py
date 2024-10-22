@@ -5,13 +5,14 @@ from auth.generate_password import generate_password
 from utilities import send_email
 import bcrypt
 from dotenv import load_dotenv
-import os
-from db.db import user_db
+from db.db import user_db, doctors_db
 from serializer.user_serializer import user_serializer
 from controllers.password_changued import route_password_chagued
 from controllers.create_users import create_users_route
 from auth.dependencies import is_admin
 from fastapi.middleware.cors import CORSMiddleware
+from controllers.doctor_schedule import create_schedule_route
+from controllers.doctor_speciality import doctor_speciality_route
 
 # Cargar las variables del archivo .env
 load_dotenv()
@@ -27,6 +28,8 @@ app.add_middleware(
 )
 app.include_router(route_password_chagued)
 app.include_router(create_users_route)
+app.include_router(create_schedule_route)
+app.include_router(doctor_speciality_route)
 
 # Endpoint retorna el token de usuario si sus credenciales son correctas
 @app.post("/token")

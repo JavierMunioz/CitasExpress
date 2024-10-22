@@ -13,4 +13,6 @@ except:
 
 db =  conection['citas']
 user_db = db['usuarios']
+doctor_schedule_db = db['doctor_schedule']
 password_changued_db = db['password_changued']
+doctors_db = db['doctors']

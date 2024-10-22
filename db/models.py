@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, date
 
 from pydantic import BaseModel
 
@@ -13,3 +13,8 @@ class User(BaseModel):
     rol : str
     email : str
     registered : bool
+
+class ScheduleDoctor(BaseModel):
+    user_doctor : str
+    schedule : list[list]
+    date_ : date
