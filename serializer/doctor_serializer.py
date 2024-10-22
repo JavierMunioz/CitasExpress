@@ -5,3 +5,11 @@ def doctor_serializer(doctors: dict) -> list:
         data.append(i)
 
     return data
+
+def doctor_schedule_serializer(schedulers : dict):
+    data = []
+    for i in schedulers:
+        i.pop("_id")
+        data.append(i)
+
+    return data

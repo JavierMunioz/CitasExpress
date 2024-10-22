@@ -5,14 +5,13 @@ from auth.generate_password import generate_password
 from utilities import send_email
 import bcrypt
 from dotenv import load_dotenv
-from db.db import user_db, doctors_db
+from db.db import user_db
 from serializer.user_serializer import user_serializer
-from controllers.password_changued import route_password_chagued
-from controllers.create_users import create_users_route
 from auth.dependencies import is_admin
 from fastapi.middleware.cors import CORSMiddleware
-from controllers.doctor_schedule import create_schedule_route
-from controllers.doctor_speciality import doctor_speciality_route
+from controllers.user_controller import user_controller
+from controllers.doctor_controller import doctor_controller
+from controllers.dating_controller import dating_controller
 
 # Cargar las variables del archivo .env
 load_dotenv()
@@ -26,10 +25,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-app.include_router(route_password_chagued)
-app.include_router(create_users_route)
-app.include_router(create_schedule_route)
-app.include_router(doctor_speciality_route)
+app.include_router(user_controller)
+app.include_router(doctor_controller)
+app.include_router(dating_controller)
 
 # Endpoint retorna el token de usuario si sus credenciales son correctas
 @app.post("/token")
@@ -68,7 +66,7 @@ async def register(user_client: str = Form(...)):
 
 
 # Retorna los usuarios registrados siempre y cuando los el usuario este como admin
-@app.get("/dashboard/admin")
-async def usuarios_on_db(current_user: dict = Depends(is_admin)):
-    return user_serializer(user_db.find())
+@app.get("/admin/user/list")
+async def users_on_db(current_user: dict = Depends(is_admin)):
+    return user_serializer(user_db.find({"rol":"1"}))
 

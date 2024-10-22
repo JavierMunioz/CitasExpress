@@ -1,18 +1,33 @@
-import string
 import random
+import string
 from datetime import datetime, timedelta
 import bcrypt
-from fastapi import HTTPException, Form, APIRouter
+from fastapi import APIRouter, Depends, Form, HTTPException
+from auth.dependencies import is_admin
 from db.db import user_db, password_changued_db
+from db.models import User, PasswordChanged
 from utilities import send_email
-from db.models import PasswordChanged
 
-route_password_chagued = APIRouter()
+user_controller = APIRouter()
+
+@user_controller.post("/admin/user/create")
+async def create_user(user_client : User, current_user : dict = Depends(is_admin)):
+    user_on_db = user_db.find_one({"user" : user_client.user})
+    hashed = bcrypt.hashpw(user_client.password.encode(), bcrypt.gensalt())
+    user_client.password = hashed
+    if user_on_db:
+        raise HTTPException(status_code=400, detail="Usuario duplicado")
+
+    user_db.insert_one(user_client.__dict__)
+
+    return {"Exito" : "Usuario agregado correctamente"}
+
+
 
 def generate_verification_code(length=6):
     return ''.join(random.choices(string.digits, k=length))
 
-@route_password_chagued.post("/code_verification")
+@user_controller.post("/user/code_verification")
 async def requests_code(user_client : str = Form(...)):
 
     user_on_db = user_db.find_one({'user': user_client})
@@ -37,7 +52,7 @@ async def requests_code(user_client : str = Form(...)):
 
     return {"Exito" : f"tu codigo fue enviado al correo {user_on_db['email']}"}
 
-@route_password_chagued.post("/changed_password")
+@user_controller.post("/user/changed_password")
 async def changed_password(user : str = Form(...), new_password : str = Form(...), code : str = Form(...)):
     user_on_db = user_db.find_one({'user': user})
     on_db = password_changued_db.find_one({'user': user})
