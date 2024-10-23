@@ -1,6 +1,7 @@
-from fastapi import APIRouter, Depends, HTTPException
-from db.db import user_db, doctor_schedule_db, dating_db
-from db.models import Dating
+from datetime import date
+from fastapi import APIRouter, Depends, HTTPException,  Query
+from db.db import user_db, assigned_dating_db,doctor_schedule_db, dating_db
+from db.models import Dating, AssignedDating
 from main import is_admin
 
 
@@ -13,11 +14,6 @@ async def dating_create(dating_client : Dating , current_user : dict = Depends(i
 
     if not doctor_on_db:
         raise HTTPException(status_code=400, detail="Debe ser un doctor")
-
-    user_on_db = user_db.find_one({"user" : dating_client.patient, "rol" : "1"})
-
-    if not user_on_db:
-        raise HTTPException(status_code=400, detail="Paciente incorrecto")
 
     doctor_schedule =  doctor_schedule_db.find_one({"user_doctor" : doctor_on_db.get("user") , "date_" : dating_client.date_.isoformat()})
 
@@ -48,3 +44,34 @@ async def dating_create(dating_client : Dating , current_user : dict = Depends(i
 
 
     return {"Exito" : "Cita creada correctamente"}
+
+
+@dating_controller.get("/admin/dating/list")
+async def dating_list(date_ : date = Query(...), speciality : str = Query(...), doctor_ : str =  Query(...)):
+    data = []
+    dating_on_db = dating_db.find({"date_" : date_.isoformat() , "speciality" : speciality, "doctor" : doctor_})
+
+    if not dating_on_db:
+        return data
+
+    for i in dating_on_db:
+        i.pop("_id")
+        data.append(i)
+    return data
+
+@dating_controller.post("/admin/assigned_dating")
+async def assigned_dating(dating_client : AssignedDating, current_user : dict = Depends(is_admin)):
+    assigned_dating_on_db = assigned_dating_db.find_one({"date_" : dating_client.date_.isoformat(), "time" : dating_client.time, "speciality" : dating_client.speciality, "doctor" : dating_client.doctor})
+
+    if assigned_dating_on_db:
+        raise HTTPException(status_code=400, detail="esta cita ya esta ocupada")
+
+    assigned_dating_db.insert_one({
+        "date_" : dating_client.date_.isoformat(),
+        "doctor" : dating_client.doctor,
+        "time" : dating_client.time,
+        "speciality" : dating_client.speciality,
+        "patient" : dating_client.patient
+    })
+
+    return {"Exito" : "Cita asignada correctamente"}

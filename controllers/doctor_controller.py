@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, Form, HTTPException, Query
 from auth.dependencies import is_admin
 from db.db import doctor_schedule_db, user_db, doctors_db
 from db.models import Doctor, User, UserDoctor
-from serializer.doctor_serializer import doctor_serializer, doctor_schedule_serializer
+from serializer.doctor_serializer import doctor_serializer
 
 doctor_controller = APIRouter()
 

@@ -32,4 +32,7 @@ class Dating(BaseModel):
     date_ : date
     doctor : str
     time : str
+    speciality: str
+
+class AssignedDating(Dating):
     patient : str
