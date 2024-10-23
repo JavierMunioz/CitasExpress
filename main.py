@@ -1,3 +1,4 @@
+import uvicorn
 from fastapi import Depends, FastAPI, HTTPException, status, Form
 from fastapi.security import OAuth2PasswordRequestForm
 from auth.auth import get_current_user, create_access_token

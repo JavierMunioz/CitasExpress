@@ -38,7 +38,7 @@ async def create_schedule_doctor(doctors_id : str = Form(...), date_ : date = Fo
 
 @doctor_controller.post("/admin/doctor/speciality")
 async def doctor_speciality(doctors_speciality : str = Form(...), current_user : dict = Depends(is_admin)):
-    # 0 - Neurologia, 1 - Pediatra, 3 - Medicina General
+    # 0 - Laboratorio, 1 - Pediatra, 3 - Medicina General
     doctors_on_db = doctors_db.find({"speciality" : doctors_speciality})
 
     return doctor_serializer(doctors_on_db)
