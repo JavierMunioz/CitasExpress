@@ -37,7 +37,7 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
     if not user_on_db or not bcrypt.checkpw(form_data.password.encode(), user_on_db['password']):
         raise HTTPException(status_code=400, detail="Credenciales incorrectas")
 
-    access_token = create_access_token(data={"sub": user_on_db["email"], "rol": user_on_db["rol"], "user": user_on_db["user"]})
+    access_token = create_access_token(data={"name" : user_on_db["name"],"sub": user_on_db["email"], "rol": user_on_db["rol"], "user": user_on_db["user"]})
     return {"access_token": access_token, "token_type": "bearer"}
 
 # Retorna el usuario actual
