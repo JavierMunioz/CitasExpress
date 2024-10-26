@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 import bcrypt
 from fastapi import APIRouter, Depends, Form, HTTPException
 from auth.dependencies import is_admin
+from auth.generate_password import generate_password
 from db.db import user_db, password_changued_db
 from db.models import User, PasswordChanged
 from utilities import send_email, send_code
@@ -12,12 +13,14 @@ user_controller = APIRouter()
 
 @user_controller.post("/admin/user/create")
 async def create_user(user_client : User, current_user : dict = Depends(is_admin)):
+    if user_client.user == "" or user_client.rol == "" or user_client.name == "" or user_client.email == "" or user_client.password == "":
+        raise HTTPException(status_code=400, detail="Asegurate de mandar todos los datos")
     user_on_db = user_db.find_one({"user" : user_client.user})
-    hashed = bcrypt.hashpw(user_client.password.encode(), bcrypt.gensalt())
+    hashed = bcrypt.hashpw(generate_password().encode(), bcrypt.gensalt())
     user_client.password = hashed
     if user_on_db:
         raise HTTPException(status_code=400, detail="Usuario duplicado")
-
+    user_client.registered = False
     user_db.insert_one(user_client.__dict__)
 
     return {"Exito" : "Usuario agregado correctamente"}

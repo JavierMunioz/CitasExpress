@@ -2,6 +2,7 @@ from datetime import date
 import bcrypt
 from fastapi import APIRouter, Depends, Form, HTTPException, Query
 from auth.dependencies import is_admin
+from auth.generate_password import generate_password
 from db.db import doctor_schedule_db, user_db, doctors_db
 from db.models import Doctor, User, UserDoctor
 from serializer.doctor_serializer import doctor_serializer
@@ -45,7 +46,8 @@ async def doctor_speciality(doctors_speciality : str = Form(...), current_user :
 
 @doctor_controller.post('/admin/doctor/create')
 async def doctor_create(user_client : UserDoctor, current_user : dict = Depends(is_admin)):
-
+    if user_client.user == "" or user_client.rol == "" or user_client.name == "" or user_client.email == "" or user_client.password == "":
+        raise HTTPException(status_code=400, detail="Asegurate de mandar todos los datos")
     user_on_db =  user_db.find_one({"user" : user_client.user})
 
     if user_on_db:
@@ -55,8 +57,9 @@ async def doctor_create(user_client : UserDoctor, current_user : dict = Depends(
         raise HTTPException(status_code=400, detail="Asegurate de querer guardar un doctor")
 
     doctor_client = Doctor(user=user_client.user, name=user_client.name, speciality=user_client.speciality)
-    user_client.password = bcrypt.hashpw(user_client.password.encode(), bcrypt.gensalt())
+    user_client.password = bcrypt.hashpw(generate_password().encode(), bcrypt.gensalt())
     user_client = User(user=user_client.user, password=user_client.password, name=user_client.name, rol=user_client.rol, email=user_client.email, registered=user_client.registered)
+    user_client.registered = False
     user_db.insert_one(user_client.__dict__)
     doctors_db.insert_one(doctor_client.__dict__)
 

@@ -14,13 +14,19 @@ def send_email(by, to, affair, text):
     password = os.getenv('PASSWORD_EMAIL')  # Reemplaza con tu contraseña o contraseña de aplicación
 
 
+    with open('./static/temp_password.html', 'r', encoding='utf-8') as file:
+        template =  Template(file.read())
+
+    html = template.render(
+        code = text
+    )
 
     # Crear el objeto del mensaje
     msg = MIMEMultipart()
     msg['From'] = by
     msg['To'] = to
     msg['Subject'] = affair
-    msg.attach(MIMEText(text, 'plain'))
+    msg.attach(MIMEText(html, 'html',  'utf-8'))
 
     try:
         # Conectar al servidor SMTP y enviar el correo

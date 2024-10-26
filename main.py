@@ -57,8 +57,7 @@ async def register(user_client: str = Form(...)):
         raise HTTPException(status_code=400, detail=f"Ya estás registrado, revisa tu correo: {user_on_db['email']}.")
 
     temp_pass = generate_password()
-    send_email("javidavi16dd@gmail.com", user_on_db["email"], "Contraseña temporal citas express",
-                  f"Usa: \n{temp_pass}\npara ingresar al sistema.")
+    send_email("javidavi16dd@gmail.com", user_on_db["email"], "Contraseña temporal citas express",temp_pass)
 
     hashed = bcrypt.hashpw(temp_pass.encode(), bcrypt.gensalt())
     user_db.update_one({"user": user_client}, {"$set": {'password': hashed, 'registered': True}})
