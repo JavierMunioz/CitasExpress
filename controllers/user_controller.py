@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, Form, HTTPException
 from auth.dependencies import is_admin
 from db.db import user_db, password_changued_db
 from db.models import User, PasswordChanged
-from utilities import send_email
+from utilities import send_email, send_code
 
 user_controller = APIRouter()
 
@@ -48,7 +48,7 @@ async def requests_code(user_client : str = Form(...)):
         password_changued_db.update_one({"user": user_client}, {"$set": {'verification_code': code, 'date_created' : datetime.utcnow()}})
 
 
-    send_email("javidavi16dd@gmail.com", user_on_db["email"], "Verification code citas express", f"Tu codigo para poder cambair la contraseña es: {code}")
+    send_code("javidavi16dd@gmail.com", user_on_db["email"], "Verification code citas express", code)
 
     return {"Exito" : f"tu codigo fue enviado al correo {user_on_db['email']}"}
 
@@ -68,5 +68,7 @@ async def changed_password(user : str = Form(...), new_password : str = Form(...
 
     hashed = bcrypt.hashpw(new_password.encode(), bcrypt.gensalt())
     user_db.update_one({"user": user}, {"$set": {'password': hashed}})
+
+    password_changued_db.delete_one({"user":user})
 
     return {"Exito" : "Contraseña cambiada"}

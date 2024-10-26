@@ -46,8 +46,8 @@ async def dating_create(dating_client : Dating , current_user : dict = Depends(i
     return {"Exito" : "Cita creada correctamente"}
 
 
-@dating_controller.get("/admin/dating/list")
-async def dating_list(date_ : date = Query(...), speciality : str = Query(...), doctor_ : str =  Query(...)):
+@dating_controller.get("/admin/dating/list-filter")
+async def dating_list_filter(date_ : date = Query(...), speciality : str = Query(...), doctor_ : str =  Query(...)):
     data = []
     dating_on_db = dating_db.find({"date_" : date_.isoformat() , "speciality" : speciality, "doctor" : doctor_})
 
@@ -75,3 +75,16 @@ async def assigned_dating(dating_client : AssignedDating, current_user : dict = 
     })
 
     return {"Exito" : "Cita asignada correctamente"}
+
+
+@dating_controller.get("/admin/dating/list")
+async def dating_list(current_user = Depends(is_admin)):
+    dating_on_db = assigned_dating_db.find()
+
+    data = []
+
+    for i in dating_on_db:
+        i.pop("_id")
+        data.append(i)
+
+    return data
