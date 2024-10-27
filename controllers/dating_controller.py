@@ -60,7 +60,7 @@ async def dating_list_filter(date_ : date = Query(...), speciality : str = Query
     return data
 
 @dating_controller.post("/admin/assigned_dating")
-async def assigned_dating(dating_client : AssignedDating, current_user : dict = Depends(is_admin)):
+async def assigned_dating(dating_client : AssignedDating):
     assigned_dating_on_db = assigned_dating_db.find_one({"date_" : dating_client.date_.isoformat(), "time" : dating_client.time, "speciality" : dating_client.speciality, "doctor" : dating_client.doctor})
 
     if assigned_dating_on_db:

@@ -38,7 +38,7 @@ async def create_schedule_doctor(doctors_id : str = Form(...), date_ : date = Fo
     return {"Exito" : "Horarios creados correctamente"}
 
 @doctor_controller.post("/admin/doctor/speciality")
-async def doctor_speciality(doctors_speciality : str = Form(...), current_user : dict = Depends(is_admin)):
+async def doctor_speciality(doctors_speciality : str = Form(...)):
     # 0 - Laboratorio, 1 - Pediatra, 3 - Medicina General
     doctors_on_db = doctors_db.find({"speciality" : doctors_speciality})
 
@@ -66,7 +66,7 @@ async def doctor_create(user_client : UserDoctor, current_user : dict = Depends(
     return {"Exito" :  "Doctor creado correctamente"}
 
 @doctor_controller.get("/admin/doctor/schedule/list")
-async def doctor_schedule_list(doctors_id : str = Query(...), date_ : date = Query(...), current_user : dict = Depends(is_admin)):
+async def doctor_schedule_list(doctors_id : str = Query(...), date_ : date = Query(...)):
 
     doctor_on_db = user_db.find_one({"user" : doctors_id, "rol" : "2"})
 
@@ -76,3 +76,4 @@ async def doctor_schedule_list(doctors_id : str = Query(...), date_ : date = Que
     doctor_schedule_on_db = doctor_schedule_db.find_one({"user_doctor" : doctors_id, "date_" : date_.isoformat()})
     doctor_schedule_on_db.pop("_id")
     return doctor_schedule_on_db
+
