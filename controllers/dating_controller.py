@@ -56,12 +56,26 @@ async def dating_list_filter(date_ : date = Query(...), speciality : str = Query
 
     for i in dating_on_db:
         i.pop("_id")
-        data.append(i)
+        occupied = assigned_dating_db.find({"date_": date_.isoformat(), "speciality": speciality, "doctor": doctor_})
+        if not occupied:
+            data.append(i)
     return data
 
 @dating_controller.post("/admin/assigned_dating")
 async def assigned_dating(dating_client : AssignedDating):
     assigned_dating_on_db = assigned_dating_db.find_one({"date_" : dating_client.date_.isoformat(), "time" : dating_client.time, "speciality" : dating_client.speciality, "doctor" : dating_client.doctor})
+
+    if dating_client.time not in  ["8:00 - 8:30",
+                                   "9:00 - 9:30",
+                                   "10:00 - 10:30",
+                                   "11:00 - 11:30",
+                                   "2:00 - 2:30",
+                                   "3:00 - 3:30",
+                                   "4:00 - 4:30",
+                                   "5:00 - 5:30",]:
+        raise HTTPException(status_code=400, detail="Error de horario")
+
+
 
     if assigned_dating_on_db:
         raise HTTPException(status_code=400, detail="esta cita ya esta ocupada")
