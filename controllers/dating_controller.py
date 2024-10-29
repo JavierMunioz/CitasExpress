@@ -56,7 +56,9 @@ async def dating_list_filter(date_ : date = Query(...), speciality : str = Query
 
     for i in dating_on_db:
         i.pop("_id")
-        occupied = assigned_dating_db.find({"date_": date_.isoformat(), "speciality": speciality, "doctor": doctor_})
+
+        occupied = assigned_dating_db.find_one({"date_": i['date_'], "speciality": i["speciality"], "doctor": i["doctor"], "time": i["time"]})
+
         if not occupied:
             data.append(i)
     return data
