@@ -81,4 +81,5 @@ async def doctor_schedule_list(doctors_id : str = Query(...), date_ : date = Que
 
 @doctor_controller.get('/admin/doctor/list')
 async def doctor_list():
-    return {"":""}
+    doctors_on_db = doctors_db.find()
+    return doctor_serializer(doctors_on_db)
