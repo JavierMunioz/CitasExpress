@@ -1,13 +1,15 @@
 from datetime import date
 import bcrypt
 from fastapi import APIRouter, Depends, Form, HTTPException, Query
+from pygments.lexer import default
+
 from auth.dependencies import is_admin
 from auth.generate_password import generate_password
 from db.db import doctor_schedule_db, user_db, doctors_db
 from db.models import Doctor, User, UserDoctor
 from serializer.doctor_serializer import doctor_serializer
 
-doctor_controller = APIRouter()
+doctor_controller = APIRouter(tags=['doctor'])
 
 @doctor_controller.post("/admin/doctor/schedule")
 async def create_schedule_doctor(doctors_id : str = Form(...), date_ : date = Form(...), current_user : dict = Depends(is_admin)):
@@ -77,3 +79,6 @@ async def doctor_schedule_list(doctors_id : str = Query(...), date_ : date = Que
     doctor_schedule_on_db.pop("_id")
     return doctor_schedule_on_db
 
+@doctor_controller.get('/admin/doctor/list')
+async def doctor_list():
+    return {"":""}
